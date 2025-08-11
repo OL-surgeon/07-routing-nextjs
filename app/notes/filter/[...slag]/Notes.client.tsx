@@ -7,8 +7,7 @@ import { fetchNotes } from "@/lib/api";
 import NoteList from "@/components/NoteList/NoteList";
 import { Pagination } from "@/components/Pagination/Pagination";
 import { SearchBox } from "@/components/SearchBox/SearchBox";
-import Modal from "@/components/Modal/Modal";
-import NoteForm from "@/components/NoteForm/NoteForm";
+
 import css from "../page.module.css";
 import type { NoteResponse } from "@/lib/api";
 
@@ -21,18 +20,18 @@ interface NotesClientProps {
 
 export default function NotesClient({
   page: initialPage,
-  perPage,
+
   search: initialSearch,
   initialData,
 }: NotesClientProps) {
   const [page, setPage] = useState(initialPage);
   const [search, setSearch] = useState(initialSearch);
   const [debouncedSearch] = useDebounce(search, 500);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [, setIsModalOpen] = useState(false);
 
   const { data, isLoading, isError } = useQuery<NoteResponse>({
     queryKey: ["notes", page, debouncedSearch],
-    queryFn: () => fetchNotes(page, perPage, debouncedSearch),
+    queryFn: () => fetchNotes(),
     initialData,
     placeholderData: initialData,
   });
@@ -47,7 +46,6 @@ export default function NotesClient({
   };
 
   const handleOpenModal = () => setIsModalOpen(true);
-  const handleCloseModal = () => setIsModalOpen(false);
 
   return (
     <div className={css.wrapper}>
@@ -59,12 +57,6 @@ export default function NotesClient({
           Create note
         </button>
       </div>
-
-      {isModalOpen && (
-        <Modal onClose={handleCloseModal}>
-          <NoteForm onSuccess={handleCloseModal} onCancel={handleCloseModal} />
-        </Modal>
-      )}
 
       {isLoading && <p className={css.centered}>Loading, please wait...</p>}
       {isError && <p className={css.centered}>Something went wrong.</p>}

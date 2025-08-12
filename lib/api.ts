@@ -44,7 +44,7 @@ interface FetchNotesParams {
   page: number;
   perPage: number;
   search?: string;
-  category?: string;
+  tag?: string;
 }
 
 export async function fetchNotes(
@@ -55,7 +55,7 @@ export async function fetchNotes(
 ): Promise<NoteResponse> {
   const params: FetchNotesParams = { page, perPage };
   if (search.trim()) params.search = search.trim();
-  if (category && category.toLowerCase() !== "all") params.category = category;
+  if (category && category.toLowerCase() !== "all") params.tag = category;
 
   const cacheKey = JSON.stringify(params);
   if (cache[cacheKey]) {

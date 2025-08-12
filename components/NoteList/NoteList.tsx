@@ -7,7 +7,6 @@ import { deleteNote } from "../../lib/api"; // Adjust the import path as necessa
 
 interface NoteListProps {
   notes: Note[];
-  tag: string;
 }
 
 export default function NoteList({ notes }: NoteListProps) {

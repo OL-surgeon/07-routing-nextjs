@@ -1,10 +1,9 @@
-// app/notes/filter/[...slug]/Notes.client.tsx
 "use client";
 
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useDebounce } from "use-debounce";
-import { fetchNotes } from "@/lib/api";
+import { fetchNotes, type NoteResponse } from "@/lib/api";
 import NoteList from "@/components/NoteList/NoteList";
 import { Pagination } from "@/components/Pagination/Pagination";
 import { SearchBox } from "@/components/SearchBox/SearchBox";
@@ -12,14 +11,13 @@ import Modal from "@/components/Modal/Modal";
 import NoteForm from "@/components/NoteForm/NoteForm";
 
 import css from "../page.module.css";
-import type { NoteResponse } from "@/lib/api";
 
 interface NotesClientProps {
   initialData: NoteResponse;
   initialPage?: number;
   perPage?: number;
   initialSearch?: string;
-  tag?: string | undefined; // тег для фільтрації (може бути undefined -> всі нотатки)
+  tag?: string | undefined;
 }
 
 export default function NotesClient({
@@ -29,12 +27,11 @@ export default function NotesClient({
   initialSearch = "",
   tag,
 }: NotesClientProps) {
-  const [page, setPage] = useState<number>(initialPage);
-  const [search, setSearch] = useState<string>(initialSearch);
+  const [page, setPage] = useState(initialPage);
+  const [search, setSearch] = useState(initialSearch);
   const [debouncedSearch] = useDebounce(search, 500);
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Ключ включає тег, сторінку та пошук — кеш правильно сегментується
   const { data, isLoading, isError } = useQuery<NoteResponse, Error>({
     queryKey: ["notes", page, debouncedSearch, tag],
     queryFn: () => fetchNotes(page, perPage, debouncedSearch, tag),
@@ -42,18 +39,11 @@ export default function NotesClient({
     placeholderData: initialData,
   });
 
-  const handlePageChange = (newPage: number) => {
-    // Pagination компонент передає 1-based сторінку (за реалізацією), тому просто встановлюємо newPage
-    setPage(newPage);
-  };
-
+  const handlePageChange = (newPage: number) => setPage(newPage);
   const handleSearchChange = (value: string) => {
     setSearch(value);
     setPage(1);
   };
-
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
 
   return (
     <div className={css.wrapper}>
@@ -61,15 +51,17 @@ export default function NotesClient({
 
       <div className={css.header}>
         <SearchBox value={search} onChange={handleSearchChange} />
-        <button className={css.button} onClick={openModal}>
+        <button className={css.button} onClick={() => setIsModalOpen(true)}>
           Create note
         </button>
       </div>
 
       {isModalOpen && (
-        <Modal onClose={closeModal}>
-          {}
-          <NoteForm onCancel={closeModal} onSuccess={closeModal} />
+        <Modal onClose={() => setIsModalOpen(false)}>
+          <NoteForm
+            onCancel={() => setIsModalOpen(false)}
+            onSuccess={() => setIsModalOpen(false)}
+          />
         </Modal>
       )}
 
@@ -77,7 +69,12 @@ export default function NotesClient({
       {isError && <p className={css.centered}>Something went wrong.</p>}
 
       {}
-      <NoteList notes={data?.notes ?? []} tag={""} />
+      {data?.notes?.length ? (
+        <NoteList notes={data.notes} />
+      ) : (
+        !isLoading &&
+        !isError && <p className={css.centered}>No notes found.</p>
+      )}
 
       {data && data.totalPages > 1 && (
         <div className={css.centered}>

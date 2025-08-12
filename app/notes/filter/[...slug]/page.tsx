@@ -14,8 +14,8 @@ const NotesByCategory = async ({ params }: Props) => {
   return (
     <div>
       <h1>Notes List</h1>
-      {/* Передаємо тег у NoteList як prop */}
-      <NoteList notes={response.notes ?? []} tag={category} />
+      {}
+      <NoteList notes={response.notes ?? []} />
     </div>
   );
 };

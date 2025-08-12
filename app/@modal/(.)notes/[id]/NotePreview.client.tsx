@@ -1,38 +1,47 @@
 "use client";
+
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { fetchNoteById } from "@/lib/api";
-import css from "./NotePreview.module.css";
 import Modal from "@/components/Modal/Modal";
 
-const NotePreview = () => {
-  const { id } = useParams<{ id: string }>();
+interface NotePreviewProps {
+  id: string;
+}
+
+const NotePreviewClient = ({ id }: NotePreviewProps) => {
+  const router = useRouter();
+
   const {
     data: note,
     isLoading,
-    error,
+    isError,
   } = useQuery({
     queryKey: ["note", id],
     queryFn: () => fetchNoteById(id),
-    refetchOnMount: false,
   });
 
-  if (isLoading) return <p>Loading, please wait...</p>;
-  if (error || !note) return <p>Something went wrong.</p>;
+  const handleClose = () => {
+    router.back();
+  };
+
+  if (isLoading) return <Modal onClose={handleClose}>Loading...</Modal>;
+  if (isError || !note)
+    return <Modal onClose={handleClose}>Error loading note.</Modal>;
+
   return (
-    <Modal>
-      <div className={css.container}>
-        <div className={css.item}>
-          <div className={css.header}>
-            <h2>{note.title}</h2>
-          </div>
-          <p className={css.content}>{note.content}</p>
-          <p className={css.content}>{note.tag}</p>
-          <p className={css.date}>{note.createdAt}</p>
-        </div>
-      </div>
+    <Modal onClose={handleClose}>
+      <button
+        onClick={handleClose}
+        aria-label="Close modal"
+        style={{ float: "right" }}
+      >
+        ✕
+      </button>
+      <h2>{note.title}</h2>
+      <p>{note.content}</p>
     </Modal>
   );
 };
 
-export default NotePreview;
+export default NotePreviewClient;

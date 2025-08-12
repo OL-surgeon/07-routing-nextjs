@@ -15,14 +15,37 @@ const instance = axios.create({
   headers: { Authorization: `Bearer ${API_TOKEN}` },
 });
 
+const cache: Record<string, NoteResponse> = {};
+
+async function fetchWithRetry<T>(
+  fn: () => Promise<T>,
+  retries = 3,
+  delay = 2000
+): Promise<T> {
+  try {
+    return await fn();
+  } catch (err: unknown) {
+    if (
+      axios.isAxiosError(err) &&
+      err.response?.status === 429 &&
+      retries > 0
+    ) {
+      console.warn(
+        `429 Too Many Requests — чекаю ${delay / 1000}s і пробую ще раз...`
+      );
+      await new Promise((res) => setTimeout(res, delay));
+      return fetchWithRetry(fn, retries - 1, delay * 2);
+    }
+    throw err;
+  }
+}
+
 interface FetchNotesParams {
   page: number;
   perPage: number;
   search?: string;
   category?: string;
 }
-
-const cache: Record<string, NoteResponse> = {};
 
 export async function fetchNotes(
   page = 1,
@@ -31,46 +54,36 @@ export async function fetchNotes(
   category?: string
 ): Promise<NoteResponse> {
   const params: FetchNotesParams = { page, perPage };
-  if (search.trim()) {
-    params.search = search.trim();
-  }
-  if (category && category.toLowerCase() !== "all") {
-    params.category = category;
-  }
+  if (search.trim()) params.search = search.trim();
+  if (category && category.toLowerCase() !== "all") params.category = category;
 
   const cacheKey = JSON.stringify(params);
-
   if (cache[cacheKey]) {
     return cache[cacheKey];
   }
 
-  try {
-    const { data } = await instance.get<NoteResponse>("/notes", { params });
-    cache[cacheKey] = data;
-    return data;
-  } catch (err: unknown) {
-    if (axios.isAxiosError(err) && err.response?.status === 429) {
-      console.warn("429 Too Many Requests — чекаю 2с і пробую ще раз...");
-      await new Promise((res) => setTimeout(res, 2000));
-      const { data } = await instance.get<NoteResponse>("/notes", { params });
-      cache[cacheKey] = data;
-      return data;
-    }
-    throw err;
-  }
+  const data = await fetchWithRetry(() =>
+    instance.get<NoteResponse>("/notes", { params }).then((res) => res.data)
+  );
+
+  cache[cacheKey] = data;
+  return data;
 }
 
 export async function fetchNoteById(id: string): Promise<Note> {
-  const { data } = await instance.get<Note>(`/notes/${id}`);
-  return data;
+  return fetchWithRetry(() =>
+    instance.get<Note>(`/notes/${id}`).then((res) => res.data)
+  );
 }
 
 export async function createNote(newNote: NewNote): Promise<Note> {
-  const { data } = await instance.post<Note>("/notes", newNote);
-  return data;
+  return fetchWithRetry(() =>
+    instance.post<Note>("/notes", newNote).then((res) => res.data)
+  );
 }
 
 export async function deleteNote(noteId: string): Promise<Note> {
-  const { data } = await instance.delete<Note>(`/notes/${noteId}`);
-  return data;
+  return fetchWithRetry(() =>
+    instance.delete<Note>(`/notes/${noteId}`).then((res) => res.data)
+  );
 }

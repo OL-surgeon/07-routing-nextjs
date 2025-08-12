@@ -1,5 +1,3 @@
-// app/notes/filter/[...slug]/page.tsx
-
 import { fetchNotes } from "@/lib/api";
 import NoteList from "@/components/NoteList/NoteList";
 
@@ -9,13 +7,15 @@ type Props = {
 
 const NotesByCategory = async ({ params }: Props) => {
   const { slug } = await params;
-  const category = slug[0] === "All" ? "" : slug[0];
-  const response = await fetchNotes(1, 12, category);
-  console.log(response);
+  const category = slug[0].toLowerCase() === "all" ? "" : slug[0];
+
+  const response = await fetchNotes(1, 12, "", category);
+
   return (
     <div>
       <h1>Notes List</h1>
-      <NoteList notes={response?.notes ?? []} />
+      {/* Передаємо тег у NoteList як prop */}
+      <NoteList notes={response.notes ?? []} tag={category} />
     </div>
   );
 };

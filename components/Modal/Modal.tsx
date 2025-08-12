@@ -1,23 +1,13 @@
-// components/Modal/Modal.tsx
-
-"use client";
-
-import { useRouter } from "next/navigation";
-
-type Props = {
+interface ModalProps {
   children: React.ReactNode;
-};
+  onClose?: () => void;
+}
 
-const Modal = ({ children }: Props) => {
-  const router = useRouter();
-
-  const close = () => router.back();
-
+const Modal = ({ children, onClose }: ModalProps) => {
   return (
-    <div>
-      <div>
+    <div className="modalOverlay" onClick={onClose}>
+      <div className="modalContent" onClick={(e) => e.stopPropagation()}>
         {children}
-        <button onClick={close}>Close</button>
       </div>
     </div>
   );

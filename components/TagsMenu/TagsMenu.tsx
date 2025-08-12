@@ -5,7 +5,7 @@ import Link from "next/link";
 import css from "./TagsMenu.module.css";
 
 const TagsMenu = () => {
-  const categories = ["All", "Work", "Personal", "Meeting", "Shopping", "Todo"];
+  const categories = ["All", "Todo", "Work", "Personal", "Meeting", "Shopping"];
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -19,15 +19,6 @@ const TagsMenu = () => {
       </button>
       {isOpen && (
         <ul className={css.menuList}>
-          <li className={css.menuItem}>
-            <Link
-              href="/notes/filter/All"
-              onClick={handleLinkClick}
-              className={css.menuLink}
-            >
-              All notes
-            </Link>
-          </li>
           {categories.map((category) => (
             <li key={category} className={css.menuItem}>
               <Link
@@ -35,7 +26,7 @@ const TagsMenu = () => {
                 onClick={handleLinkClick}
                 className={css.menuLink}
               >
-                {category}
+                {category === "All" ? "All notes" : category}
               </Link>
             </li>
           ))}

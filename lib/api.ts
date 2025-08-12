@@ -52,23 +52,3 @@ export async function deleteNote(noteId: string): Promise<Note> {
   const { data } = await instance.delete<Note>(`/notes/${noteId}`);
   return data;
 }
-
-// export type Category = {
-//   id: string;
-//   name: string;
-//   description: string;
-//   createdAt: string;
-//   updatedAt: string;
-// };
-
-// export const getCategories = async () => {
-//   const { data } = await instance.get<Category[]>("/categories");
-//   return data;
-// };
-
-// export const fetchNotes = async (categoryId?: string) => {
-//   const { data } = await instance.get<NoteResponse>("/notes", {
-//     params: categoryId ? { categoryId } : undefined,
-//   });
-//   return data;
-// };

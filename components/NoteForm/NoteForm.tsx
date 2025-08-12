@@ -4,8 +4,8 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import css from "./NoteForm.module.css";
 
-import { createNote } from "../../lib/api";
-import { NoteTag, CreateNoteData } from "../../types/note";
+import { createNote } from "../../lib/api"; // Adjust the import path as necessary
+import { NoteTag, CreateNoteData } from "../../types/note"; // Adjust the import path as necessary
 
 interface NoteFormProps {
   onCancel: () => void;

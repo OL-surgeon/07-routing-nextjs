@@ -1,5 +1,1 @@
-const SidebarNotes = async () => {
-  return <SidebarNotes />;
-};
-
-export default SidebarNotes;
+export { default } from "./SidebarNotes";

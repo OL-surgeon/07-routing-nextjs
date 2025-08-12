@@ -1,3 +1,4 @@
+// lib/api.ts
 import axios from "axios";
 import type { Note, NewNote } from "../types/note";
 
@@ -5,6 +6,7 @@ export interface NoteResponse {
   notes: Note[];
   totalPages: number;
 }
+
 const API_TOKEN = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
 const BASE_URL = "https://notehub-public.goit.study/api";
 
@@ -17,8 +19,10 @@ interface FetchNotesParams {
   page: number;
   perPage: number;
   search?: string;
-  category?: string; // додано
+  category?: string;
 }
+
+const cache: Record<string, NoteResponse> = {};
 
 export async function fetchNotes(
   page = 1,
@@ -34,8 +38,26 @@ export async function fetchNotes(
     params.category = category;
   }
 
-  const { data } = await instance.get<NoteResponse>("/notes", { params });
-  return data;
+  const cacheKey = JSON.stringify(params);
+
+  if (cache[cacheKey]) {
+    return cache[cacheKey];
+  }
+
+  try {
+    const { data } = await instance.get<NoteResponse>("/notes", { params });
+    cache[cacheKey] = data;
+    return data;
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err) && err.response?.status === 429) {
+      console.warn("429 Too Many Requests — чекаю 2с і пробую ще раз...");
+      await new Promise((res) => setTimeout(res, 2000));
+      const { data } = await instance.get<NoteResponse>("/notes", { params });
+      cache[cacheKey] = data;
+      return data;
+    }
+    throw err;
+  }
 }
 
 export async function fetchNoteById(id: string): Promise<Note> {

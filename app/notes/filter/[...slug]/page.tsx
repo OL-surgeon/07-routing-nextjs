@@ -15,7 +15,7 @@ const NotesByCategory = async ({ params }: Props) => {
     <div>
       <h1>Notes List</h1>
       {}
-      <NoteList notes={response.notes ?? []} />
+      <NoteList notes={response.notes ?? []} tag={category} />
     </div>
   );
 };
